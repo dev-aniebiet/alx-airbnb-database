@@ -2,15 +2,15 @@
 -- This query joins the 'profile' and 'bookings' tables to link users to their bookings.
 -- It then groups the results by user and uses the COUNT function to find the
 -- total number of bookings for each user.
-
-SELECT
+SELECT 
     p.user_id,
     p.first_name,
     p.last_name,
     COUNT(b.booking_id) AS total_bookings
 FROM
     profile AS p
-    LEFT JOIN bookings AS b ON p.user_id = b.user_id
+LEFT JOIN
+    bookings AS b ON p.user_id = b.user_id
 GROUP BY
     p.user_id,
     p.first_name,
@@ -18,7 +18,7 @@ GROUP BY
 ORDER BY
     total_bookings DESC;
 
--- Window Function: Rank properties based on the total number of bookings.
+-- Use a window function RANK to rank properties based on the total number of bookings they have received.
 -- This query first uses a Common Table Expression (CTE) called 'PropertyBookings'
 -- to count the number of bookings for each property.
 -- Then, the main query selects from this CTE and uses the RANK() window function
@@ -33,13 +33,13 @@ WITH PropertyBookings AS (
         properties AS p
     LEFT JOIN
         bookings AS b ON p.property_id = b.property_id
-    GROUP BY 
+    GROUP BY
         p.property_id, p.name
 )
-SELECT 
+SELECT
     property_name,
     booking_count,
-    RANK() OVER (ORDER BY booking_count DESC) AS booking_rank
-FROM
-    PropertyBookings;
+    RANK() OVER (ORDER BY booking_count DESC) AS property_rank,
+    ROW_NUMBER() OVER (ORDER BY booking_count DESC) AS unique_rank
+FROM PropertyBookings;
 
